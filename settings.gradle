@@ -1,0 +1,3 @@
+include ':app', ':mj-core'
+
+project(':mj-core').projectDir = new File('mj-core/core')
