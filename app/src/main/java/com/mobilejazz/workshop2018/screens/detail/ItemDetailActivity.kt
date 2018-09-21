@@ -7,11 +7,14 @@ import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.text.Html
 import android.view.MenuItem
+import com.mobilejazz.kotlin.core.threading.extensions.onCompleteUi
 import com.mobilejazz.workshop2018.R
-import com.mobilejazz.workshop2018.model.Item
-import com.mobilejazz.workshop2018.network.Network
+import com.mobilejazz.workshop2018.core.domain.interactor.GetItemsByIdInteractor
+import com.mobilejazz.workshop2018.core.domain.model.Item
 import com.mobilejazz.workshop2018.screens.ItemsAdapter
+import dagger.android.AndroidInjection
 import kotlinx.android.synthetic.main.activity_item_detail.*
+import javax.inject.Inject
 
 class ItemDetailActivity : AppCompatActivity() {
 
@@ -21,6 +24,8 @@ class ItemDetailActivity : AppCompatActivity() {
     fun getIntent(context: Context, item: Item): Intent = Intent(context, ItemDetailActivity::class.java).apply { putExtra(ITEM_KEY, item) }
   }
 
+  @Inject lateinit var getItemsByIdInteractor: GetItemsByIdInteractor
+
   private val adapter by lazy {
     ItemsAdapter(listener = {
       // Nothing to do
@@ -28,6 +33,7 @@ class ItemDetailActivity : AppCompatActivity() {
   }
 
   override fun onCreate(savedInstanceState: Bundle?) {
+    AndroidInjection.inject(this)
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_item_detail)
 
@@ -44,10 +50,7 @@ class ItemDetailActivity : AppCompatActivity() {
     activity_detail_items_rv.layoutManager = LinearLayoutManager(this)
     activity_detail_items_rv.adapter = adapter
 
-
-    item.by?.let {
-      activity_detail_item_by_tv.text = "by: $it"
-    }
+    activity_detail_item_by_tv.text = "by: ${item.by}"
 
     item.text?.let {
       activity_detail_item_description_tv.text = Html.fromHtml(it)
@@ -72,23 +75,13 @@ class ItemDetailActivity : AppCompatActivity() {
 
 
   private fun loadComments(ids: List<Int>) {
-    val items: MutableList<Item> = mutableListOf()
-    var failCounter = 0
+    getItemsByIdInteractor(ids).onCompleteUi(onSuccess = {
+      adapter.reloadData(it)
 
-    ids.forEach {
-      Network.itemById(it, success = {
-        items.add(it)
-
-        if ((items.size + failCounter) == ids.size) {
-          adapter.reloadData(items)
-
-          activity_detail_items_comments_tv.text = "${ids.size} COMMENTS"
-        }
-
-      }, failure = {
-        failCounter++
-      })
-    }
+      activity_detail_items_comments_tv.text = "${ids.size} COMMENTS"
+    }, onFailure = {
+      // Nothing to do
+    })
   }
 
 }

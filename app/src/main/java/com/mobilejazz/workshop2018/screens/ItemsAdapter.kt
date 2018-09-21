@@ -7,7 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import com.mobilejazz.workshop2018.R
-import com.mobilejazz.workshop2018.model.Item
+import com.mobilejazz.workshop2018.core.domain.model.Item
 import kotlinx.android.synthetic.main.item_cell.view.*
 
 class ItemsViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
