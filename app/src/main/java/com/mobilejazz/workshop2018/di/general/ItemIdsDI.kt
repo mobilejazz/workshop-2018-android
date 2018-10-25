@@ -33,13 +33,13 @@ class ItemIdsDI {
 
   @Provides
   @Singleton
-  fun provideSharedPreferencesStorage(sharedPreferences: SharedPreferences): SharedPreferencesDataSource<Int> {
+  fun provideSharedPreferencesStorage(sharedPreferences: SharedPreferences): DeviceStorageDataSource<Int> {
     val gson = Gson()
     val toStringMapper = ModelToStringMapper<Int>(gson)
     val toModelMapper = StringToModelMapper(Int::class.java, gson)
     val toListModelMapper = ListModelToStringMapper<Int>(gson)
     val toStringListMapper = StringToListModelMapper<Int>(gson)
-    return SharedPreferencesDataSource(sharedPreferences, toStringMapper, toModelMapper, toListModelMapper, toStringListMapper)
+    return DeviceStorageDataSource(sharedPreferences, toStringMapper, toModelMapper, toListModelMapper, toStringListMapper)
   }
 
   // Repository
@@ -53,7 +53,7 @@ class ItemIdsDI {
 
   @Provides
   @Singleton
-  fun provideNetworkStorageRepository(sharedPreferencesDataSource: SharedPreferencesDataSource<Int>, getDataSource: GetDataSource<Int>): NetworkStorageRepository<Int> {
+  fun provideNetworkStorageRepository(sharedPreferencesDataSource: DeviceStorageDataSource<Int>, getDataSource: GetDataSource<Int>): NetworkStorageRepository<Int> {
     return NetworkStorageRepository(sharedPreferencesDataSource, sharedPreferencesDataSource, sharedPreferencesDataSource, getDataSource, VoidPutDataSource()
         , VoidDeleteDataSource())
   }

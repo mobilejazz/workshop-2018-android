@@ -44,13 +44,13 @@ class ItemDI {
 
   @Provides
   @Singleton
-  fun provideSharedPreferencesStorage(sharedPreferences: SharedPreferences): SharedPreferencesDataSource<ItemEntity> {
+  fun provideSharedPreferencesStorage(sharedPreferences: SharedPreferences): DeviceStorageDataSource<ItemEntity> {
     val gson = Gson()
     val toStringMapper = ModelToStringMapper<ItemEntity>(gson)
     val toModelMapper = StringToModelMapper(ItemEntity::class.java, gson)
     val toListModelMapper = ListModelToStringMapper<ItemEntity>(gson)
     val toStringListMapper = StringToListModelMapper<ItemEntity>(gson)
-    return SharedPreferencesDataSource(sharedPreferences, toStringMapper, toModelMapper, toListModelMapper, toStringListMapper)
+    return DeviceStorageDataSource(sharedPreferences, toStringMapper, toModelMapper, toListModelMapper, toStringListMapper)
   }
 
   // Datasources
@@ -58,7 +58,7 @@ class ItemDI {
 
   @Provides
   @Singleton
-  fun provideVastraValidator(sharedPreferencesDataSource: SharedPreferencesDataSource<ItemEntity>): DataSourceVastraValidator<ItemEntity> {
+  fun provideVastraValidator(sharedPreferencesDataSource: DeviceStorageDataSource<ItemEntity>): DataSourceVastraValidator<ItemEntity> {
     val validationServiceManager = ValidationServiceManager(arrayListOf(TimestampValidationStrategy()))
     return DataSourceVastraValidator(sharedPreferencesDataSource, sharedPreferencesDataSource, sharedPreferencesDataSource, validationServiceManager)
   }
