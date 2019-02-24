@@ -1,12 +1,14 @@
 package com.mobilejazz.workshop2018.di.general
 
 import android.content.SharedPreferences
+import com.google.common.reflect.TypeToken
 import com.google.gson.Gson
 import com.mobilejazz.kotlin.core.repository.*
 import com.mobilejazz.kotlin.core.repository.datasource.*
 import com.mobilejazz.kotlin.core.repository.datasource.memory.InMemoryDataSource
-import com.mobilejazz.kotlin.core.repository.datasource.srpreferences.*
-import com.mobilejazz.kotlin.core.repository.mapper.VoidMapper
+import com.mobilejazz.kotlin.core.repository.datasource.srpreferences.DeviceStorageDataSource
+import com.mobilejazz.kotlin.core.repository.datasource.srpreferences.DeviceStorageObjectAssemblerDataSource
+import com.mobilejazz.kotlin.core.repository.mapper.*
 import com.mobilejazz.kotlin.core.repository.validator.vastra.ValidationServiceManager
 import com.mobilejazz.kotlin.core.repository.validator.vastra.strategies.timestamp.TimestampValidationStrategy
 import com.mobilejazz.workshop2018.core.data.mapper.ItemEntityToItemMapper
@@ -44,13 +46,15 @@ class ItemDI {
 
   @Provides
   @Singleton
-  fun provideSharedPreferencesStorage(sharedPreferences: SharedPreferences): DeviceStorageDataSource<ItemEntity> {
+  fun provideSharedPreferencesStorage(sharedPreferences: SharedPreferences): DeviceStorageObjectAssemblerDataSource<ItemEntity> {
+    val deviceStorageDataSource = DeviceStorageDataSource<String>(sharedPreferences)
+
     val gson = Gson()
     val toStringMapper = ModelToStringMapper<ItemEntity>(gson)
     val toModelMapper = StringToModelMapper(ItemEntity::class.java, gson)
     val toListModelMapper = ListModelToStringMapper<ItemEntity>(gson)
-    val toStringListMapper = StringToListModelMapper<ItemEntity>(gson)
-    return DeviceStorageDataSource(sharedPreferences, toStringMapper, toModelMapper, toListModelMapper, toStringListMapper)
+    val toStringListMapper = StringToListModelMapper(object : TypeToken<List<ItemEntity>>() {}, gson)
+    return DeviceStorageObjectAssemblerDataSource(toStringMapper, toModelMapper, toListModelMapper, toStringListMapper, deviceStorageDataSource)
   }
 
   // Datasources
@@ -58,7 +62,7 @@ class ItemDI {
 
   @Provides
   @Singleton
-  fun provideVastraValidator(sharedPreferencesDataSource: DeviceStorageDataSource<ItemEntity>): DataSourceVastraValidator<ItemEntity> {
+  fun provideVastraValidator(sharedPreferencesDataSource: DeviceStorageObjectAssemblerDataSource<ItemEntity>): DataSourceVastraValidator<ItemEntity> {
     val validationServiceManager = ValidationServiceManager(arrayListOf(TimestampValidationStrategy()))
     return DataSourceVastraValidator(sharedPreferencesDataSource, sharedPreferencesDataSource, sharedPreferencesDataSource, validationServiceManager)
   }
